@@ -61,6 +61,15 @@ namespace MoreTerminalCommands.Lang {
         }
         
         /// <summary>
+        ///   查找类似 机械门 的本地化字符串。
+        /// </summary>
+        internal static string BigDoor_Clone_ {
+            get {
+                return ResourceManager.GetString("BigDoor(Clone)", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 关闭 的本地化字符串。
         /// </summary>
         internal static string Close {
@@ -259,11 +268,29 @@ namespace MoreTerminalCommands.Lang {
         }
         
         /// <summary>
+        ///   查找类似 地雷 的本地化字符串。
+        /// </summary>
+        internal static string Landmine {
+            get {
+                return ResourceManager.GetString("Landmine", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 当前语言： 的本地化字符串。
         /// </summary>
         internal static string Lang {
             get {
                 return ResourceManager.GetString("Lang", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 打开 的本地化字符串。
+        /// </summary>
+        internal static string On {
+            get {
+                return ResourceManager.GetString("On", resourceCulture);
             }
         }
         
@@ -327,6 +354,15 @@ namespace MoreTerminalCommands.Lang {
         internal static string Teleporter {
             get {
                 return ResourceManager.GetString("Teleporter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 机枪 的本地化字符串。
+        /// </summary>
+        internal static string TurretScript {
+            get {
+                return ResourceManager.GetString("TurretScript", resourceCulture);
             }
         }
     }

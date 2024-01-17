@@ -9,9 +9,11 @@ using LethalAPI.LibTerminal.Models;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Unity.Netcode;
 using UnityEngine;
 
 namespace MoreTerminalCommands
@@ -28,6 +30,7 @@ namespace MoreTerminalCommands
         void Start()
         {
             LangugeConfig = Config.Bind("config", "languge", "en_US", "mod languge");
+            Harmony.CreateAndPatchAll(typeof(TerminalAccessibleObjectPatch), "cn.chuxiaaaa.plugin.MoreTerminalCommands");
             LocalizationManager.SetLanguage(LangugeConfig.Value);
             Commands = TerminalRegistry.CreateTerminalRegistry();
             Commands.RegisterFrom(this);
@@ -54,8 +57,17 @@ namespace MoreTerminalCommands
                 }
             }
         }
+        [TerminalCommand("Code"), CommandInfo("List the codes of machine guns, mines, and mechanical doors")]
+        public string Code() {
+            StringBuilder sb = new StringBuilder();
+            TerminalAccessibleObject[] array = UnityEngine.Object.FindObjectsOfType<TerminalAccessibleObject>();
+            for (int i = 0; i < array.Length; i++)
+            {
+                sb.AppendLine($"{array[i].objectCode}|{LocalizationManager.GetString(array[i].name)}");
+            }
+            return sb.ToString();
+        }
 
-        public List<EnemyAI> enemies = new List<EnemyAI>();
         public DateTime cooldown { get; set; }
 
         [TerminalCommand("Lang"), CommandInfo("Set Plugin Languge")]
@@ -79,13 +91,13 @@ namespace MoreTerminalCommands
             {
                 return $"[{LocalizationManager.GetString("Cooldown")}: {(cooldown.AddSeconds(120) - DateTime.Now).TotalSeconds} {LocalizationManager.GetString("sec")}.]";
             }
-            enemies.Clear();
+            List<EnemyAI> enemies = new List<EnemyAI>();
             CollectObjectsOfType(enemies);
             StringBuilder sb = new StringBuilder();
             Dictionary<string, int> dics = new Dictionary<string, int>();
             foreach (var item in enemies)
             {
-                if (!item.isOutside)
+                if (!item.isOutside && !item.isEnemyDead)
                 {
                     if (dics.ContainsKey(item.enemyType.enemyName))
                     {
@@ -115,12 +127,12 @@ namespace MoreTerminalCommands
             return sb.ToString();
         }
 
-
+ 
         [TerminalCommand("LightOn"), CommandInfo("Turn On The Light")]
         public string LightOn()
         {
             UnityEngine.Object.FindObjectOfType<ShipLights>().SetShipLightsServerRpc(true);
-            return $"[{LocalizationManager.GetString("ShipLight")}:On]";
+            return $"[{LocalizationManager.GetString("ShipLight")}:{LocalizationManager.GetString("On")}]";
         }
 
         [TerminalCommand("ShipDoor"), CommandInfo("Open or Close the Ship Door")]

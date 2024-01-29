@@ -88,6 +88,15 @@ namespace MoreTerminalCommands.Lang {
         }
         
         /// <summary>
+        ///   查找类似 已阵亡 的本地化字符串。
+        /// </summary>
+        internal static string death {
+            get {
+                return ResourceManager.GetString("death", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 敌人列表 的本地化字符串。
         /// </summary>
         internal static string Enemies {
@@ -259,6 +268,15 @@ namespace MoreTerminalCommands.Lang {
         }
         
         /// <summary>
+        ///   查找类似 在飞船 的本地化字符串。
+        /// </summary>
+        internal static string inShip {
+            get {
+                return ResourceManager.GetString("inShip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 反向 的本地化字符串。
         /// </summary>
         internal static string Inverse {
@@ -304,6 +322,15 @@ namespace MoreTerminalCommands.Lang {
         }
         
         /// <summary>
+        ///   查找类似 玩家列表 的本地化字符串。
+        /// </summary>
+        internal static string Players {
+            get {
+                return ResourceManager.GetString("Players", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 秒 的本地化字符串。
         /// </summary>
         internal static string sec {
@@ -336,6 +363,15 @@ namespace MoreTerminalCommands.Lang {
         internal static string ShipLoot {
             get {
                 return ResourceManager.GetString("ShipLoot", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 将雷达摄像头视图切换到工作中的同事。 的本地化字符串。
+        /// </summary>
+        internal static string Switch {
+            get {
+                return ResourceManager.GetString("Switch", resourceCulture);
             }
         }
         

@@ -126,6 +126,9 @@
   <data name="Cooldown" xml:space="preserve">
     <value>冷却时间</value>
   </data>
+  <data name="death" xml:space="preserve">
+    <value>已阵亡</value>
+  </data>
   <data name="Enemies" xml:space="preserve">
     <value>敌人列表</value>
   </data>
@@ -183,6 +186,9 @@
   <data name="enemy_tip2" xml:space="preserve">
     <value>当前设施里面没有敌人，尽快探索吧！</value>
   </data>
+  <data name="inShip" xml:space="preserve">
+    <value>在飞船</value>
+  </data>
   <data name="Inverse" xml:space="preserve">
     <value>反向</value>
   </data>
@@ -198,6 +204,9 @@
   <data name="Open" xml:space="preserve">
     <value>打开</value>
   </data>
+  <data name="Players" xml:space="preserve">
+    <value>玩家列表</value>
+  </data>
   <data name="sec" xml:space="preserve">
     <value>秒</value>
   </data>
@@ -209,6 +218,9 @@
   </data>
   <data name="ShipLoot" xml:space="preserve">
     <value>当前飞船物品价值</value>
+  </data>
+  <data name="Switch" xml:space="preserve">
+    <value>将雷达摄像头视图切换到工作中的同事。</value>
   </data>
   <data name="Teleport" xml:space="preserve">
     <value>传送中</value>

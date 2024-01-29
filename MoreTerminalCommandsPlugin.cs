@@ -18,24 +18,39 @@ using UnityEngine;
 
 namespace MoreTerminalCommands
 {
-    [BepInPlugin("cn.chuxiaaaa.plugin.MoreTerminalCommands", "MoreTerminalCommands", "1.0.2")]
+    [BepInDependency(LethalAPI.LibTerminal.PluginInfo.PLUGIN_GUID, BepInDependency.DependencyFlags.HardDependency)]
+    [BepInPlugin("cn.chuxiaaaa.plugin.MoreTerminalCommands", "MoreTerminalCommands", "1.0.8")]
     public class MoreTerminalCommandsPlugin : BaseUnityPlugin
     {
         private TerminalModRegistry Commands;
 
         public static ManualLogSource ManualLog = null;
 
+        public static Dictionary<int, int> YRots = new Dictionary<int, int>();
+
+        public static bool Debug { get; set; }
+
         ConfigEntry<string> LangugeConfig;
 
-        void Start()
+        void Awake()
         {
-            LangugeConfig = Config.Bind("config", "languge", "en_US", "mod languge");
-            Harmony.CreateAndPatchAll(typeof(TerminalAccessibleObjectPatch), "cn.chuxiaaaa.plugin.MoreTerminalCommands");
-            LocalizationManager.SetLanguage(LangugeConfig.Value);
-            Commands = TerminalRegistry.CreateTerminalRegistry();
-            Commands.RegisterFrom(this);
-            ManualLog = Logger;
-            Logger.LogInfo("More Terminal Commands Loaded!");
+            try
+            {
+                LangugeConfig = Config.Bind("config", "languge", "en_US", "mod languge");
+                Harmony.CreateAndPatchAll(typeof(TerminalAccessibleObjectPatch), "cn.chuxiaaaa.plugin.MoreTerminalCommands");
+                Harmony.CreateAndPatchAll(typeof(PlayerControllerBPatch3), "cn.chuxiaaaa.plugin.MoreTerminalCommands");
+                Harmony.CreateAndPatchAll(typeof(PlayerControllerBPatch2), "cn.chuxiaaaa.plugin.MoreTerminalCommands");
+                Harmony.CreateAndPatchAll(typeof(PlayerControllerBPatch), "cn.chuxiaaaa.plugin.MoreTerminalCommands");
+                LocalizationManager.SetLanguage(LangugeConfig.Value);
+                Commands = TerminalRegistry.CreateTerminalRegistry();
+                Commands.RegisterFrom(this);
+                ManualLog = Logger;
+                Logger.LogInfo("More Terminal Commands Loaded!");
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex.ToString());
+            }
         }
 
         private static float CalculateLootValue()
@@ -57,8 +72,155 @@ namespace MoreTerminalCommands
                 }
             }
         }
-        [TerminalCommand("Code"), CommandInfo("List the codes of machine guns, mines, and mechanical doors")]
-        public string Code() {
+
+        /// <summary>
+        /// 字符串转Vector3
+        /// </summary>
+        /// <param name="p_sVec3">需要转换的字符串</param>
+        /// <returns></returns>
+        public static Vector3 GetVec3ByString(string p_sVec3)
+        {
+            if (p_sVec3.Length <= 0)
+                return Vector3.zero;
+
+            string[] tmp_sValues = p_sVec3.Trim(' ').Split(',');
+            if (tmp_sValues != null && tmp_sValues.Length == 3)
+            {
+                float tmp_fX = float.Parse(tmp_sValues[0]);
+                float tmp_fY = float.Parse(tmp_sValues[1]);
+                float tmp_fZ = float.Parse(tmp_sValues[2]);
+
+                return new Vector3(tmp_fX, tmp_fY, tmp_fZ);
+            }
+            return Vector3.zero;
+        }
+
+        [TerminalCommand("Debug"), CommandInfo("Layout Debug")]
+        public string DebugCommand()
+        {
+            Debug = !Debug;
+            return Debug.ToString();
+        }
+
+        [TerminalCommand("Load"), CommandInfo("Load Layout From File")]
+        public string Load(string name)
+        {
+            Dictionary<string, int> objs = new Dictionary<string, int>();
+            var go = (from obj in GameObject.Find("/Environment/HangarShip").GetComponentsInChildren<GrabbableObject>()
+                      where obj.name != "ClipboardManual" && obj.name != "StickyNoteItem"
+                      select obj).ToList<GrabbableObject>();
+            var lines = File.ReadAllLines($"{name}.txt").ToList();
+            var lp = GameNetworkManager.Instance.localPlayerController;
+            float carryWeight = lp.carryWeight;
+            var localEulerAngles = lp.transform.localEulerAngles;
+            Logger.LogInfo("carryWeight:" + carryWeight);
+            if (lp.currentlyHeldObjectServer != null)
+            {
+                lp.DiscardHeldObject(false, null, new Vector3(0, 0, 0), true);
+            }
+            try
+            {
+                foreach (var grabbableObject in go)
+                {
+                    if (!grabbableObject.isHeld && !grabbableObject.isPocketed)
+                    {
+                        int index = 1;
+                        if (!objs.ContainsKey(grabbableObject.itemProperties.itemName))
+                        {
+                            objs.Add(grabbableObject.itemProperties.itemName, 1);
+                        }
+                        index = objs[grabbableObject.itemProperties.itemName];
+                        Logger.LogInfo("index:" + index);
+                        var line = lines.FindIndex(x => x.StartsWith($"{grabbableObject.itemProperties.itemName}{index}="));
+                        string[] v = null;
+                        if (line > -1)
+                        {
+                            v = lines[line].Split('=')[1].Split('|');
+                            objs[grabbableObject.itemProperties.itemName]++;
+                        }
+                        else
+                        {
+                            line = lines.FindIndex(x => x.StartsWith($"{grabbableObject.itemProperties.itemName}-1="));
+                            if (line > -1)
+                            {
+                                v = lines[line].Split('=')[1].Split('|');
+                            }
+                            else
+                            {
+                                line = lines.FindIndex(x => x.StartsWith($"Other="));
+                                if (line > -1)
+                                {
+                                    v = lines[line].Split('=')[1].Split('|');
+                                }
+                            }
+                        }
+                        if (v != null && v.Length > 0)
+                        {
+                            Logger.LogInfo("v[0]:" + v[0] + "|v[1]:" + v[1]);
+                            Vector3 point = GetVec3ByString(v[0]);
+                            if (grabbableObject.gameObject.transform.position == point)
+                            {
+                                continue;
+                            }
+                            grabbableObject.gameObject.transform.position = point;
+                            var yrot = int.Parse(v[1]);
+                            grabbableObject.floorYRot = (int)yrot;
+                            grabbableObject.targetFloorPosition = GetVec3ByString(v[1]);
+                            int key = grabbableObject.gameObject.GetComponent<NetworkObject>().GetInstanceID();
+                            Logger.LogInfo("key:" + key + "," + yrot);
+                            YRots.Add(key, (int)yrot);
+                            grabbableObject.playerHeldBy = lp;
+                            lp.currentlyHeldObjectServer = grabbableObject;
+                            grabbableObject.EquipItem();
+                            lp.DiscardHeldObject(false, null, new Vector3(0, 0, 0), true);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                while (ex != null)
+                {
+                    Logger.LogInfo(ex.ToString());
+                    ex = ex.InnerException;
+                }
+            }
+            lp.transform.localEulerAngles = localEulerAngles;
+            lp.carryWeight = carryWeight;
+            return "ok!";
+        }
+
+        [TerminalCommand("Save"), CommandInfo("Save Layout To File")]
+        public string Save(string name)
+        {
+            var go = (from obj in GameObject.Find("/Environment/HangarShip").GetComponentsInChildren<GrabbableObject>()
+                      where obj.name != "ClipboardManual" && obj.name != "StickyNoteItem"
+                      select obj).ToList<GrabbableObject>();
+            StringBuilder sb = new StringBuilder();
+            foreach (var item in go)
+            {
+                sb.AppendLine($"{item.itemProperties.itemName}={PositionToString(item.transform.position)}|{item.transform.localEulerAngles.y}");
+            }
+            var sbl = sb.ToString().Split('\n').ToList();
+            sbl.Sort();
+            File.WriteAllLines(name, sbl.ToArray());
+            return "ok!";
+        }
+
+        public static string PositionToString(Vector3 postion)
+        {
+            return postion.ToString().Replace("(", "").Replace(")", "");
+        }
+
+        [TerminalCommand("dm"), CommandInfo("查看所有机关(机枪、地雷、机械门)代码")]
+        public string dm()
+        {
+            return Code();
+        }
+
+        [TerminalCommand("Code"), CommandInfo("List the codes of turrets, mines, and mechanical doors")]
+        public string Code()
+        {
             StringBuilder sb = new StringBuilder();
             TerminalAccessibleObject[] array = UnityEngine.Object.FindObjectsOfType<TerminalAccessibleObject>();
             for (int i = 0; i < array.Length; i++)
@@ -82,6 +244,12 @@ namespace MoreTerminalCommands
             LocalizationManager.SetLanguage(LangugeConfig.Value);
             Config.Save();
             return $"{LocalizationManager.GetString("Lang")}:" + languge;
+        }
+
+        [TerminalCommand("dr"), CommandInfo("探测设施内的敌人(冷却时间120秒)")]
+        public string dr()
+        {
+            return Enemy();
         }
 
         [TerminalCommand("Enemy"), CommandInfo("Detect enemies within the facility, with a cooldown period of 120 seconds")]
@@ -127,7 +295,69 @@ namespace MoreTerminalCommands
             return sb.ToString();
         }
 
- 
+        [TerminalCommand("kd"), CommandInfo("打开飞船的灯(只能打开，因为我不想看到来自终端的灯光秀)")]
+        public string kd()
+        {
+            return LightOn();
+        }
+
+        [TerminalCommand("km"), CommandInfo("打开或关闭飞船舱门(根据当前飞船舱门的状态决定)")]
+        public string km()
+        {
+            return ShipDoor();
+        }
+
+        [TerminalCommand("wk", true), CommandInfo("将监视器切换到工作中的同事(在工厂内部的同事)")]
+        public string wk()
+        {
+            return Work();
+        }
+
+        [TerminalCommand("Work",true), CommandInfo("Switch the monitor to colleagues who are working(colleagues in the factory)")]
+        public string Work()
+        {
+            return WorkMethod(false);
+        }
+
+        private string WorkMethod(bool callFromSelf)
+        {
+            Logger.LogInfo(StartOfRound.Instance.mapScreen.radarTargets.Count);
+            if (StartOfRound.Instance.mapScreen.radarTargets.Count > 1)
+            {
+                var @switch = false;
+                for (int i = StartOfRound.Instance.mapScreen.targetTransformIndex + 1; i < StartOfRound.Instance.mapScreen.radarTargets.Count; i++)
+                {
+                    if (!StartOfRound.Instance.mapScreen.radarTargets[i].isNonPlayer)
+                    {
+                        var pl = StartOfRound.Instance.mapScreen.radarTargets[i].transform.gameObject.GetComponent<PlayerControllerB>();
+                        if (pl != null && pl.isPlayerControlled && pl.isInsideFactory)
+                        {
+                            @switch = true;
+                            StartOfRound.Instance.mapScreen.SwitchRadarTargetAndSync(i);
+                            break;
+                        }
+                    }
+                }
+                if (!@switch)
+                {
+                    StartOfRound.Instance.mapScreen.targetTransformIndex = 0;
+                    if (!callFromSelf)
+                    {
+                        WorkMethod(true);
+                    }
+                    else
+                    {
+                        StartOfRound.Instance.mapScreen.SwitchRadarTargetAndSync(StartOfRound.Instance.mapScreen.targetTransformIndex);
+                    }
+                }
+            }
+            else
+            {
+                StartOfRound.Instance.mapScreen.SwitchRadarTargetAndSync(0);
+            }
+            return "[" + LocalizationManager.GetString("Switch") + "]";
+        }
+
         [TerminalCommand("LightOn"), CommandInfo("Turn On The Light")]
         public string LightOn()
         {
@@ -171,6 +401,12 @@ namespace MoreTerminalCommands
             return $"[{LocalizationManager.GetString("Teleport")}]";
         }
 
+        [TerminalCommand("zj"), CommandInfo("计算当前飞船内的物品价值")]
+        public string zj()
+        {
+            return ShipLoot();
+        }
+
         [TerminalCommand("ShipLoot"), CommandInfo("Calculate Loot Value In Ship")]
         public string ShipLoot()
         {
@@ -182,6 +418,38 @@ namespace MoreTerminalCommands
         {
             return TeleportMethod(false);
         }
+
+        [TerminalCommand("pl"), CommandInfo("显示玩家列表(死亡、是否在飞船)")]
+        public string pl()
+        {
+            return Player();
+        }
+
+        [TerminalCommand("Player"), CommandInfo("Show the players info(death or inship)")]
+        public string Player()
+        {
+            List<PlayerControllerB> players = new List<PlayerControllerB>();
+            CollectObjectsOfType(players);
+            players = players.Where(x => !x.disconnectedMidGame &&
+                    !x.playerUsername.Contains("Player #")).ToList();
+            int inShip = 0;
+            int death = 0;
+            int num = players.Count;
+            foreach (var item in players)
+            {
+                if (item.isPlayerDead)
+                {
+                    death++;
+                }
+                else if (item.isInHangarShipRoom)
+                {
+                    inShip++;
+                }
+            }
+            return $"[{LocalizationManager.GetString("Players")}]{Environment.NewLine}[{LocalizationManager.GetString("inShip")}]: {inShip}/{num}{Environment.NewLine}[{LocalizationManager.GetString("death")}]: {death}/{num}";
+        }
+
+
 
 
         [TerminalCommand("tp"), CommandInfo("teleport the player displayed on the current monitor")]

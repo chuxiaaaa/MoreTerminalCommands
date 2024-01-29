@@ -126,6 +126,9 @@
   <data name="Cooldown" xml:space="preserve">
     <value>Cooldown</value>
   </data>
+  <data name="death" xml:space="preserve">
+    <value>Death</value>
+  </data>
   <data name="Enemies" xml:space="preserve">
     <value>Enemies</value>
   </data>
@@ -135,6 +138,9 @@
   <data name="enemy_tip2" xml:space="preserve">
     <value>Now very safe, explore as soon as possible</value>
   </data>
+  <data name="inShip" xml:space="preserve">
+    <value>inShip</value>
+  </data>
   <data name="Inverse" xml:space="preserve">
     <value>Inverse </value>
   </data>
@@ -142,13 +148,16 @@
     <value>Landmine</value>
   </data>
   <data name="Lang" xml:space="preserve">
-    <value>Now Languge:</value>
+    <value>Now Languge</value>
   </data>
   <data name="On" xml:space="preserve">
     <value>On</value>
   </data>
   <data name="Open" xml:space="preserve">
     <value>Open</value>
+  </data>
+  <data name="Players" xml:space="preserve">
+    <value>Players</value>
   </data>
   <data name="sec" xml:space="preserve">
     <value>sec</value>
@@ -161,6 +170,9 @@
   </data>
   <data name="ShipLoot" xml:space="preserve">
     <value>Loot In Ship Value</value>
+  </data>
+  <data name="Switch" xml:space="preserve">
+    <value>Switch the radar camera view to colleagues who are working.</value>
   </data>
   <data name="Teleport" xml:space="preserve">
     <value>Teleport</value>

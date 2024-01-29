@@ -88,6 +88,15 @@ namespace MoreTerminalCommands.Lang {
         }
         
         /// <summary>
+        ///   查找类似 Death 的本地化字符串。
+        /// </summary>
+        internal static string death {
+            get {
+                return ResourceManager.GetString("death", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Enemies 的本地化字符串。
         /// </summary>
         internal static string Enemies {
@@ -115,6 +124,15 @@ namespace MoreTerminalCommands.Lang {
         }
         
         /// <summary>
+        ///   查找类似 inShip 的本地化字符串。
+        /// </summary>
+        internal static string inShip {
+            get {
+                return ResourceManager.GetString("inShip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Inverse  的本地化字符串。
         /// </summary>
         internal static string Inverse {
@@ -133,7 +151,7 @@ namespace MoreTerminalCommands.Lang {
         }
         
         /// <summary>
-        ///   查找类似 Now Languge: 的本地化字符串。
+        ///   查找类似 Now Languge 的本地化字符串。
         /// </summary>
         internal static string Lang {
             get {
@@ -156,6 +174,15 @@ namespace MoreTerminalCommands.Lang {
         internal static string Open {
             get {
                 return ResourceManager.GetString("Open", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Players 的本地化字符串。
+        /// </summary>
+        internal static string Players {
+            get {
+                return ResourceManager.GetString("Players", resourceCulture);
             }
         }
         
@@ -192,6 +219,15 @@ namespace MoreTerminalCommands.Lang {
         internal static string ShipLoot {
             get {
                 return ResourceManager.GetString("ShipLoot", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Switch the radar camera view to colleagues who are working. 的本地化字符串。
+        /// </summary>
+        internal static string Switch {
+            get {
+                return ResourceManager.GetString("Switch", resourceCulture);
             }
         }
         
